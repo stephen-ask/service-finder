@@ -31,6 +31,9 @@ add_action('init', function () {
 	if (@$uri_segments[3] == 'product') {		
 		require_once get_template_directory() . "/api/product_api.php";
 	}
+	if (@$uri_segments[3] == 'zoom') {		
+		require_once get_template_directory() . "/api/zoom_api.php";
+	}
 });
 
 
@@ -1370,10 +1373,10 @@ add_action('init' , function(){
 	}
 	
 	if(is_user_logged_in()) {
-		$user_id = get_current_user_id();
+		$_SESSION['user_id'] = $user_id = get_current_user_id();
 		$user = get_userdata($user_id) ?? '';
 		$user_meta = get_usermeta($user_id) ?? '';
-
+		
 		if(!empty($user) && !empty($user_meta) && empty($_SESSION['user_data']) && empty($_SESSION['token'])) {
 			$unset_keys = array("cap_key", "roles", "filter", "roles", "allcaps", "caps", "ID", "user_status", "user_activation_key", "user_registered", "user_url", "user_pass");
 			foreach ($unset_keys as $key => $data) {
@@ -1594,3 +1597,4 @@ add_action('save_post_etn-zoom-meeting', function($post_id){
 	
 	wp_insert_post($post_args);
 });
+
