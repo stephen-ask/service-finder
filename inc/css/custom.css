@@ -487,6 +487,29 @@ a:hover {
 .logout-btn{
 	display: none;
 }
+.user-links ul {
+	list-style: none;
+	margin: 0;
+}
+.user-links {
+	border: 1px solid #eee;
+	padding: 8px;
+	position: absolute;
+	z-index: 11;
+	background: #fff;
+	right: 10px;
+	width: 120px;
+	top: 50px;
+	margin-top: -4px;
+}
+li.user-icon-list {
+	height: 100%;
+	align-items: center;
+	display: flex;
+}
+.user-links ul li {
+	cursor: pointer;
+}
 @media only screen and (max-width: 1199px){
 	.provider-profile-container .profile-card{
 		bottom: 0;
@@ -522,6 +545,8 @@ a:hover {
 	.fs-customer-status > li:not(:last-child) {
 		margin-right: 0;
 		padding: 0 !important;
+		align-items: center;
+		display: flex;
 	}
 	.signup_btn{
 		padding: 10px;

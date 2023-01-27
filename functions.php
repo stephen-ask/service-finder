@@ -9,6 +9,7 @@
  *
  ******************************************************************************/
 
+ error_reporting( E_WARNING );
 
 $files_array = array(
 	get_template_directory() . '/vendor/autoload.php',
@@ -33,6 +34,15 @@ add_action('init', function () {
 	}
 	if (@$uri_segments[3] == 'zoom') {		
 		require_once get_template_directory() . "/api/zoom_api.php";
+	}
+	if (@$uri_segments[3] == 'blog-post') {		
+		if(get_template_directory() . "/api/post_api.php") {
+			
+			require_once get_template_directory() . "/api/base_api.php";
+			require_once get_template_directory() . "/api/post_api.php";
+			
+			
+		}
 	}
 });
 
@@ -571,6 +581,13 @@ function service_finder_widgets_init()
 		'after_widget'  => '</div>',
 		'before_title'  => '<h4 class="widget-title">',
 		'after_title'   => '</h4>',
+	));
+	
+	register_sidebar(array(
+		'name'          => esc_html__('Footer 5', 'service-finder'),
+		'id'            => 'sf-sidebar-footer-5',
+		'before_widget' => '<div class="widget %1$s %2$s">',
+		'after_widget'  => '</div>',
 	));
 }
 add_action('widgets_init', 'service_finder_widgets_init');
@@ -1373,7 +1390,7 @@ add_action('init' , function(){
 	}
 	
 	if(is_user_logged_in()) {
-		$_SESSION['user_id'] = $user_id = get_current_user_id();
+		$_SESSION['current_user_id'] = $user_id = get_current_user_id();
 		$user = get_userdata($user_id) ?? '';
 		$user_meta = get_usermeta($user_id) ?? '';
 		
@@ -1416,6 +1433,8 @@ add_action('wp_logout', function(){
 function isuserLoggedin(WP_REST_Request $request) {	
 	$authorization = $request->get_header('authorization');
 	
+	if(empty($authorization)) return false; 
+
 	$token = str_replace('Bearer ','',$authorization);
 	$tkn_user = json_decode(base64_decode(str_replace('_', '/', str_replace('-','+',explode('.', $token)[1]))));
 	
@@ -1423,8 +1442,11 @@ function isuserLoggedin(WP_REST_Request $request) {
 	
 	if(!empty($authorization) && !empty($userdata)) {	
 		$usermeta = get_user_meta($tkn_user->id); 
+		$_SESSION['current_user_id'] = $tkn_user->id;
+	
 		return array( 'user_data' => $userdata, 'user_meta' => $usermeta, 
 		'user_role' => $userdata->roles);
+		
 	}
 	return false; 
 }
@@ -1504,10 +1526,11 @@ function invert_formatted_sale_price( $price, $regular_price, $sale_price ) {
 add_action('init', function(){
 	if(session_status() === PHP_SESSION_NONE) session_start();
 
-	if(!isset($_SESSION['user_id'])){	
+	if(!isset($_SESSION['current_user_id'])){	
 		$current_user_id = get_current_user_id(); 
-		$api_user_id = 1;
-		$_SESSION['user_id'] = ($current_user_id == 0) ? $api_user_id : $current_user_id;
+		$api_user_id = 2;
+		
+		$_SESSION['current_user_id'] = ($current_user_id == 0) ? $api_user_id : $current_user_id;
 	}
 });
 
@@ -1535,6 +1558,7 @@ add_action('publish_future_post', function($post_id){
 
 add_action('save_post_etn-zoom-meeting', function($post_id){
 
+
 	$title = sanitize_text_field($_POST['topic']);
 	$description = sanitize_text_field($_POST['agenda']);
 	$etn_start_date = sanitize_text_field($_POST['etn_start_date']);
@@ -1560,7 +1584,6 @@ add_action('save_post_etn-zoom-meeting', function($post_id){
 		'etn_min_ticket' =>1,
 		'etn_max_ticket' =>1000,
 	);
-
 
 	$meta_args = array(
 		'_edit_last' => '1',
@@ -1589,7 +1612,7 @@ add_action('save_post_etn-zoom-meeting', function($post_id){
 	$post_args = array(
 		'post_title' => $title,
 		'post_content' => $description,
-		'post_author' => $_SESSION['user_id'],
+		'post_author' => $_SESSION['current_user_id'],
 		"meta_input" => $meta_args,
 		'post_type' => 'etn',
 		"post_status" => 'publish',
@@ -1598,3 +1621,79 @@ add_action('save_post_etn-zoom-meeting', function($post_id){
 	wp_insert_post($post_args);
 });
 
+function jwt_encode($payload, $key ) {  
+	return JWT::encode($payload, $key, 'HS256');
+}
+
+add_shortcode('influencer_product_list	', 'influencer_get_products_list' );
+function influencer_get_products_list() {
+	$user_id = get_current_user_id();
+	 $args = array(
+        'post_type'      => 'product',
+		'post_author' => $user_id
+    );
+
+    $loop = new WP_Query( $args );
+	$html = '<table class="products_list">';
+	$html .= '<tr>';
+		$html .= '<th>';
+			$html .= 'S.No';
+		$html .= '</th>';
+		$html .= '<th>';
+			$html .= 'Product Image';
+		$html .= '</th>';
+		$html .= '<th>';
+			$html .= 'Product Title';
+		$html .= '</th>';
+		$html .= '<th>';
+			$html .= 'Action';
+		$html .= '</th>';
+	$html .= '</tr>';
+	
+	$i = 1;
+    while ( $loop->have_posts() ) : $loop->the_post();
+        global $product;
+		$html .= '<tr>
+			<td>'.$i.'</td>
+			<td>'.woocommerce_get_product_thumbnail().'</td>
+			<td><a href="'.get_permalink().'">'.get_the_title().'</a></td>
+			<td><a href="'.get_permalink().'" class="btn btn-primary pr-1" >Edit</a><a href="'.get_permalink().'" class="btn btn-primary pr-1">Delete</a></td>
+		</tr>';
+		$i++;
+    endwhile;
+	 wp_reset_query();
+	return $html .= '</table>';
+   
+}
+
+add_shortcode('meetup_grid', 'meetup_grid');
+function meetup_grid($attr) {
+	global $wpdb;
+
+	$args = array(
+		'post_type' => 'etn',
+		'post_author' => get_current_user_id()
+	);
+	$posts = get_posts($args);
+
+	$html = '<div class="row">';
+	
+	if(empty($posts) && $posts == NULL) return $html .='<H3> No Events found</H3></div>';
+
+	if(isset($attr['type']) && @$attr['type'] != 'grid'){
+		$html .= get_template_part( 'templates/product/product-list', array( 'posts' => $posts ) );
+	}
+	else {
+		$html .= get_template_part( 'templates/product/product-grid', array( 'posts' => $posts ) );
+	}
+
+	return $html .= '</div>';
+}
+
+
+// add_filter('rest_authentication_errors', "disable_rest");
+function disable_rest($access) {
+	$error = new WP_Error();
+	$error->add(406, __('Invalid Account', 'rest-api-endpoints'));
+	return $error;
+}

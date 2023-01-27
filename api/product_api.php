@@ -12,13 +12,6 @@ if( defined( 'WC_ABSPATH' )) {
         
 global $product, $wpdb;
 
-// $messages = array(
-// 	'authorisation' => array(
-// 		'success' => '',
-// 		'failed' => ''
-// 	)
-// );
-
 add_action('rest_api_init', 'wp_product_endpoints');
 function wp_product_endpoints($request)
 {
@@ -129,13 +122,7 @@ function wp_product_endpoints($request)
 	register_rest_route('v1/product', '/search', array(
 		'methods' => 'POST',
 		'callback' => 'search_product',
-	));
-
-	register_rest_route('v1/post', '/add/', array(
-        'methods' => 'POST',
-        'callback' => 'create_new_post'
-    ));
-	
+	));	
 }
 
 function get_products(WP_REST_Request $request)
@@ -978,18 +965,19 @@ function add_new_order(WP_REST_Request $request) {
 	$service_finder_Errors = new WP_Error(); 
     $userData = isuserLoggedin($request);
 	$parameters = $request->get_params();
-	$product_orders = $parameters['orders'];
 	$product_ids = array();
-	
-	if(empty($product_orders)) {
-		$service_finder_Errors->add(404, esc_html__('Orders should not be empty', 'service-finder'));
-		return $service_finder_Errors;	
-	}
-	
-    if($userData) {
-		$query = 'SELECT company_name as company,address as address_1, address_2,city,state,country,zipcode, phone FROM `service_finder_providers` where wp_user_id="'.$userData['user_data']->id.'"';
-		$result = $wpdb->get_results($query)[0];
 
+    if($userData) {
+		$user_id = $userData['user_data']->id;
+		$query = 'SELECT company_name as company,address as address_1, address_2,city,state,country,zipcode, phone FROM `service_finder_providers` where wp_user_id="'.$user_id.'"';
+		$result = $wpdb->get_results($query)[0];
+		
+		wp_set_current_user($user_id);
+		$objProduct = new WC_Session_Handler();
+		$wc_session_data = $objProduct->get_session($user_id);
+
+		$full_user_meta = get_user_meta($user_id, '_woocommerce_persistent_cart_1', true);
+		
 		  if ( null === WC()-> session ) {
             $session_class = apply_filters( 'woocommerce_session_handler', 'WC_Session_Handler' );
            
@@ -1026,16 +1014,22 @@ function add_new_order(WP_REST_Request $request) {
 		
 		// create a new cart object
         $cartObj = WC()->cart;
-		
-		foreach($product_orders as $product_order) {	
-			$product_ids[] = $product_id = $product_order['id'];
-			$order->add_product( get_product( $product_order['id'] ), $product_order['quantity'] );
-			$cart_id = $cart->generate_cart_id($product_id);
-			$cart_item_id = $cart->find_product_in_cart($cart_id);
-			$cart->set_quantity($cart_item_id, 0);
 
+		if(empty(WC()->cart->get_cart())) {
+			$service_finder_Errors->add(401, esc_html__('Cart Empty', 'service-finder'));
+			return $service_finder_Errors;
 		}
+	
+		foreach( WC()->cart->get_cart() as $item) {
+			$product_ids[] = $product_id = $item['product_id'];
+			$quantity = $item['quantity'];
 			
+			$order->add_product( get_product( $product_id ), $quantity );
+			$cart_id =  $cartObj->generate_cart_id($product_id);
+			$cart_item_id = $cartObj->find_product_in_cart($cart_id);
+			$cartObj->set_quantity($cart_item_id, 0);
+		}
+	
 		$order->set_address( $address, 'billing' );
 		$order->set_address( $address, 'shipping' );
 		$order->calculate_totals();
@@ -1043,7 +1037,7 @@ function add_new_order(WP_REST_Request $request) {
 		$order->payment_complete(); 
 
 		update_post_meta($order->id, '_customer_user', $userData['user_data']->id);
-		
+	
 		$response['status'] = 'Success';	
 		$response['message'] = 'Your Order has been placed';	
 		return new WP_REST_Response($response); 
@@ -1531,33 +1525,7 @@ function create_new_products(WP_REST_Request $request){
         return $service_finder_Errors;
     }
 }
-function create_new_post(WP_REST_Request $request) {
-	$authorised = isuserLoggedin($request);
-	$service_finder_Errors = new WP_Error();
-	$parameters = $request->get_params();
-	$files = $request->get_file_params();
-	
-	if($authorised) {
-		$title = sanitize_text_field($_POST['title']);
-		$content = sanitize_text_field($_POST['content']);
-		$status = sanitize_text_field($_POST['status']) ?? 'publish';
-		$user_id = $authorised['user_data']->id;
-		
-		$new = array(
-			'post_title' => $title,
-			'post_content' => $content,
-			'post_status' => $status ,
-			'post_author' => $user_id,
-		);
-		
-		$post_id = wp_insert_post( $new ); 
-		return $post_id ? "Post successfully published!" : "Something went wrong, try again.";
-	}
-	else {
-        $service_finder_Errors->add(401, esc_html__('Unauthorised', 'service-finder'));
-        return $service_finder_Errors;
-    }
-}
+
 function notification(WP_REST_Request $request)
 {
 }

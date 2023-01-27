@@ -646,6 +646,9 @@ $search = get_option('search');
                     <li> 
 <!-- 						<i class="fa fa-user icons"></i> -->
 					<img src="<?=$user_icon; ?>" class='user-icon header-icons' />
+                    <div class="user-links">
+							<?php dynamic_sidebar('sf-sidebar-footer-5'); ?>
+						</div>
                     <?php 
                         if ( function_exists( 'service_finder_UserRole' )  && $isMob ) {
                             if(service_finder_UserRole($current_user->ID) == 'Customer'){ 

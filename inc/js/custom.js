@@ -1046,3 +1046,25 @@ jQuery('meta[name=viewport]').attr('content','width=device-width,initial-scale=1
         });
     });
 	function onScroll(event){}
+
+
+(function($) {
+
+	$('.user-links').hide();
+
+	$('.user-links, .user-icon, .user-icon-list').mouseover(function(){
+		$('.user-links').show();
+	});
+	$('.user-icon, .user-links, .user-icon-list').mouseout(function(){
+		$('.user-links').hide();
+	});
+
+
+
+	$('.user-icon, .user-links, .user-icon-list').focus(function(){
+		$('.user-links').show();
+	});
+	$('.user-icon, .user-links, .user-icon-list').focusout(function(){
+		$('.user-links').hide();
+	});
+})(jQuery);

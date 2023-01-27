@@ -85,6 +85,8 @@ function wp_register_user_endpoints($request)
 		'methods' => 'GET',
 		'callback' => 'get_user_address'
 	));
+
+
 }
 
 
@@ -819,4 +821,34 @@ function generateNumericOTP()
         $result .= substr($generator, (rand() % (strlen($generator))), 1);
     }
     return $result;
+}
+
+function create_new_post(WP_REST_Request $request) {
+	$authorised = isuserLoggedin($request);
+	$service_finder_Errors = new WP_Error();
+	$parameters = $request->get_params();
+	$files = $request->get_file_params();
+	
+	if($authorised) {
+		$title = sanitize_text_field($_POST['title']);
+		$content = sanitize_text_field($_POST['content']);
+		$status = sanitize_text_field($_POST['status']) ?? 'publish';
+		$user_id = $authorised['user_data']->id;
+		
+		$new = array(
+			'post_title' => $title,
+			'post_content' => $content,
+			'post_status' => $status ,
+			'post_author' => $user_id,
+		);
+		
+		$post_id = wp_insert_post( $new ); 
+		$res['status'] = $post_id ? "Success!" : "Failed";
+		$res['message'] = $post_id ? "Post successfully published!" : "Something went wrong, try again.";
+		return new WP_REST_Response($res);
+	}
+	else {
+        $service_finder_Errors->add(401, esc_html__('Unauthorised', 'service-finder'));
+        return $service_finder_Errors;
+    }
 }
