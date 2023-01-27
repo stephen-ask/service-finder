@@ -38,7 +38,7 @@ add_action('init', function () {
 	if (@$uri_segments[3] == 'blog-post') {		
 		if(get_template_directory() . "/api/post_api.php") {
 			
-			require_once get_template_directory() . "/api/base_api.php";
+		
 			require_once get_template_directory() . "/api/post_api.php";
 			
 			
@@ -1691,7 +1691,7 @@ function meetup_grid($attr) {
 }
 
 
-// add_filter('rest_authentication_errors', "disable_rest");
+add_filter('rest_authentication_errors', "disable_rest");
 function disable_rest($access) {
 	$error = new WP_Error();
 	$error->add(406, __('Invalid Account', 'rest-api-endpoints'));

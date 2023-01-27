@@ -1,6 +1,27 @@
 <?php
 
-class Post_Api extends Base_Api {
+trait Base_Api {
+    function isuserLoggedin($request) {	
+
+        $authorization = $request->get_header('authorization');
+        
+        if(empty($authorization)) return false; 
+    
+        $token = str_replace('Bearer ','',$authorization);
+        $tkn_user = json_decode(base64_decode(str_replace('_', '/', str_replace('-','+',explode('.', $token)[1]))));
+        
+        $userdata = !empty($tkn_user->id) ? get_userdata($tkn_user->id) : '';
+        
+        $usermeta = (!empty($authorization) && !empty($userdata)) ? get_user_meta($tkn_user->id) : ''; 
+        $_SESSION['current_user_id'] = (!empty($authorization) && !empty($userdata)) ? $tkn_user->id : '';
+        
+        return !empty($authorization) ? true : false; 
+    }    
+}
+
+class Post_Api {
+
+    use Base_Api;
 
     function __construct() {
         $this->action();
@@ -11,11 +32,11 @@ class Post_Api extends Base_Api {
     }
 
     function rest_api_init() {
-        echo 'init';
+     
         register_rest_route('blog-post', 'add', array(
             'methods' => 'POST',
-            'callback' => [$this, 'create_new__post'],
-            'permission_callback' => [$this, 'is_user_logged_in'],
+            'callback' => [$this, 'add__post'],
+            'permission_callback' => [$this, 'isuserLoggedin'],
             'args'=> array(
                 'title' => array (
                     "validate" => [$this, "is_empty"]
@@ -24,18 +45,19 @@ class Post_Api extends Base_Api {
         ));
     }
 
-    function is_empty($param, $request, $key) {
-        return empty($param) ? true : false;
+    function is_empty( $request ) {
+        var_dump('calling '+ $request);
+        return empty($param) ? false : true ;
     }
 
-    function create_new__post($request) {
+    function add__post($request) {
         
         $authorised = isuserLoggedin($request);
         $service_finder_Errors = new WP_Error();
         $parameters = $request->get_params();
         $files = $request->get_file_params();
         
-
+        exit;
 
         if($authorised) {
             $title = sanitize_text_field($parameters['title']);
