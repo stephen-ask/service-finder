@@ -27,23 +27,22 @@ add_action('init', function () {
 	$uri_segments = explode('/', $uri_path);
 
 	if (@$uri_segments[1] == 'wp-json') {
-		if(get_template_directory() . "/api/api.php") {	
+		if( file_exists( get_template_directory() . "/api/api.php") ){	
 			require_once get_template_directory() . "/api/api.php";
 		}
 	}
 	if (@$uri_segments[3] == 'product') {		
-		if(get_template_directory() . "/api/product_api.php") {	
+		if( file_exists( get_template_directory() . "/api/product_api.php") ){	
 			require_once get_template_directory() . "/api/product_api.php";
 		}
 	}
 	if (@$uri_segments[3] == 'zoom') {	
-		if(get_template_directory() . "/api/zoom_api.php") {	
-			
+		if( file_exists( get_template_directory() . "/api/zoom_api.php") ) {	
 			require_once get_template_directory() . "/api/zoom_api.php";
 		}
 	}
 	if (@$uri_segments[3] == 'blog-post') {		
-		if(get_template_directory() . "/api/post_api.php") {
+		if( file_exists( get_template_directory() . "/api/post_api.php")) {
 			require_once get_template_directory() . "/api/post_api.php";
 		}
 	}
