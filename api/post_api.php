@@ -1,11 +1,14 @@
 <?php
 
 trait Base_Api {
-    function isuserLoggedin($request) {	
 
+    function isuserLoggedin($request) {	
+        var_dump('test');
+        if(!session_id()) session_start();
         $authorization = $request->get_header('authorization');
         
         if(empty($authorization)) return false; 
+
     
         $token = str_replace('Bearer ','',$authorization);
         $tkn_user = json_decode(base64_decode(str_replace('_', '/', str_replace('-','+',explode('.', $token)[1]))));
@@ -15,7 +18,7 @@ trait Base_Api {
         $usermeta = (!empty($authorization) && !empty($userdata)) ? get_user_meta($tkn_user->id) : ''; 
         $_SESSION['current_user_id'] = (!empty($authorization) && !empty($userdata)) ? $tkn_user->id : '';
         
-        return !empty($authorization) ? true : false; 
+        return true ; 
     }    
 }
 
@@ -35,22 +38,22 @@ class Post_Api {
      
         register_rest_route('blog-post', 'add', array(
             'methods' => 'POST',
-            'callback' => [$this, 'add__post'],
-            'permission_callback' => [$this, 'isuserLoggedin'],
-            'args'=> array(
-                'title' => array (
-                    "validate" => [$this, "is_empty"]
-                )
-            )
+            'callback' => [$this, 'create_new_post'],
+            // 'permission_callback' => [$this, 'isuserLoggedin'],
+            // 'args'=> array(
+            //     'title' => array (
+            //         "validate" => [$this, "is_empty"]
+            //     )
+            // )
         ));
     }
 
     function is_empty( $request ) {
-        var_dump('calling '+ $request);
+        
         return empty($param) ? false : true ;
     }
 
-    function add__post($request) {
+    function create_new_post($request) {
         
         $authorised = isuserLoggedin($request);
         $service_finder_Errors = new WP_Error();

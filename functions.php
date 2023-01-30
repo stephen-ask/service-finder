@@ -27,21 +27,24 @@ add_action('init', function () {
 	$uri_segments = explode('/', $uri_path);
 
 	if (@$uri_segments[1] == 'wp-json') {
-		require_once get_template_directory() . "/api/api.php";
+		if(get_template_directory() . "/api/api.php") {	
+			require_once get_template_directory() . "/api/api.php";
+		}
 	}
 	if (@$uri_segments[3] == 'product') {		
-		require_once get_template_directory() . "/api/product_api.php";
+		if(get_template_directory() . "/api/product_api.php") {	
+			require_once get_template_directory() . "/api/product_api.php";
+		}
 	}
-	if (@$uri_segments[3] == 'zoom') {		
-		require_once get_template_directory() . "/api/zoom_api.php";
+	if (@$uri_segments[3] == 'zoom') {	
+		if(get_template_directory() . "/api/zoom_api.php") {	
+			
+			require_once get_template_directory() . "/api/zoom_api.php";
+		}
 	}
 	if (@$uri_segments[3] == 'blog-post') {		
 		if(get_template_directory() . "/api/post_api.php") {
-			
-		
 			require_once get_template_directory() . "/api/post_api.php";
-			
-			
 		}
 	}
 });
@@ -1691,9 +1694,173 @@ function meetup_grid($attr) {
 }
 
 
-add_filter('rest_authentication_errors', "disable_rest");
+// add_filter('rest_authentication_errors', "disable_rest");
 function disable_rest($access) {
 	$error = new WP_Error();
 	$error->add(406, __('Invalid Account', 'rest-api-endpoints'));
 	return $error;
 }
+
+// meeting list frontend 
+add_shortcode('influencer_meeting_list', 'influencer_meeting_list');
+function influencer_meeting_list() {
+	
+	$args = array(
+		'post_type' => 'etn',
+		
+	);
+
+	$posts = get_posts($args);
+
+	$html = '<table class="influencer_meeting_list container" >';
+	foreach( $posts as $post ) {
+
+		$get_booking_count = !empty( get_post_meta( $post->ID, "etn_avaiilable_tickets", true ) ) ? absint( get_post_meta( $post->ID, "etn_avaiilable_tickets", true ) ) : 0;
+		$get_link = get_permalink( $post->ID );
+		$event_author_data =  get_userdata($post->post_author);
+
+		$author_name = $event_author_data->data->user_login;
+		$author_name = $event_author_data->data->user_login;
+
+
+
+		$html .= '<tr class="item">';
+			$thumb = get_the_post_thumbnail_url( $post->ID );
+			$thumb = !empty( $thumb ) ? $thumb : wp_get_attachment_image_url( 5026 );
+			$permalink = get_site_url(). '/my-account/#edit-meeting?meeting='.$post->ID;
+			
+				$html .= '<h4><a href="'.$permalink.'">'.$post->post_title.'</a></h4>';
+				$html .= '<a href="'.$get_link.'" class="btn btn-primary">Join now</a>';
+
+		$html .= '</tr>';
+	}
+	wp_reset_postdata();
+	return $html .= '</table>';
+
+}
+
+// meeting list frontend 
+add_shortcode('meeting_listing', 'meeting_list');
+function meeting_list() {
+	$args = array(
+		'post_type' => 'etn',
+		'posts_per_page' => 4
+	);
+	$posts = get_posts($args);
+	$html = '<div class="meeting_list container" >';
+	foreach( $posts as $post ) {
+
+		$get_booking_count = !empty( get_post_meta( $post->ID, "etn_avaiilable_tickets", true ) ) ? absint( get_post_meta( $post->ID, "etn_avaiilable_tickets", true ) ) : 0;
+		$get_link = get_permalink( $post->ID );
+		$event_author_data =  get_userdata($post->post_author);
+		$author_name = $event_author_data->data->user_login;
+		$author_name = $event_author_data->data->user_login;
+
+		$html .= '<div class="item">';
+			$thumb = get_the_post_thumbnail_url( $post->ID );
+			$thumb = !empty( $thumb ) ? $thumb : wp_get_attachment_image_url( 5026 );
+			$permalink = get_permalink( $post->ID );
+			$html .= '<div class="top">';
+				$html .= '<div class="content">';
+					$html .= '<h5>'.$post->post_content.'</h5>';
+				$html .= '</div>';
+
+				$html .= '<div class="counters">';
+					$html .= '<div class="left">';
+						$html .= '<i class="fas fa-map-marker-alt"></i> Online Event';
+					$html .= '</div>';
+					$html .= '<div class="right">';
+						$html .= '<i class="far fa-eye"></i> '.$get_booking_count;
+					$html .= '</div>';
+				$html .= '</div>';
+			$html .= '</div>';
+			$html .= '<div class="bottom">';
+				$html .= '<div class="left">';
+					$html .= '<div class="address-card" style="background-image:url('.$thumb.')">';
+			
+					$html .= '</div>';
+					$html .= '<div class="title-container">';
+						$html .= '<h4><a href="'.$permalink.'">'.$post->post_title.'</a></h4>';
+						$html .= '<h6>'.$post->post_content.'</h6>';
+					$html .= '</div>';
+				$html .= '</div>';
+			$html .= '</div>';
+			$html .= '<a href="'.$get_link.'" class="btn btn-primary">Join now</a>';
+		$html .= '</div>';
+	}
+	wp_reset_postdata();
+	return $html .= '</div>';
+
+}
+
+// upcomming events 
+add_shortcode('upcomming_meetings', 'upcomming_meetings');
+function upcomming_meetings() {
+	$current_date =  date('Y-m-d');
+	
+	$args = array(
+		'post_type' => 'etn',
+		'meta_query'     => array(
+			array(
+				'key'     => 'etn_start_date',
+				'value'   => $current_date,
+				'compare' =>  '>='   
+			)
+		) 
+	);
+	$posts = get_posts($args);
+	$html = '<div class="upcomming_meetings" >';
+	foreach( $posts as $post ) {
+		$start_date = get_post_meta($post->ID, 'etn_start_date', true);
+		$start_time = get_post_meta($post->ID, 'etn_start_time', true);
+		
+	
+		$date = $start_time. $start_date;
+		
+		if(empty($date)) continue;
+		
+		$event_date = date('F d, Y h A', strtotime($date));
+
+		$get_booking_count = !empty( get_post_meta( $post->ID, "etn_avaiilable_tickets", true ) ) ? absint( get_post_meta( $post->ID, "etn_avaiilable_tickets", true ) ) : 0;
+		$get_link = get_permalink( $post->ID );
+		
+		$html .= '<div class="item">';
+			$thumb = get_the_post_thumbnail_url($post->ID);
+			$html .= '<div class="top">';
+				$html .= '<div class="left">';
+					$html .= '<div class="address-card">';
+						$html .= '<i class="far fa-address-card"></i>';
+					$html .= '</div>';
+					$html .= '<div class="title-container">';
+						$html .= '<h4>'.$post->post_title.'</h4>';
+						$html .= '<h6>'.$post->post_content.'</h6>';
+					$html .= '</div>';
+				$html .= '</div>';
+				$html .= '<div class="right">';
+					$html .= '<i class="fas fa-bell"></i>';
+				$html .= '</div>';
+			$html .= '</div>';
+			$html .= '<div class="bottom">';
+				$html .= '<div class="left">';
+					$html .= '<i class="far fa-calendar-alt"></i>&nbsp; '.$event_date;
+				$html .= '</div>';
+				$html .= '<div class="center">';
+					$html .= '<i class="fas fa-hat-cowboy"></i>&nbsp; '.$get_booking_count. '+ Booking';
+				$html .= '</div>';
+				$html .= '<div class="right">';
+					$html .= '<i class="fas fa-share-alt"></i>';
+				$html .= '</div>';
+			$html .= '</div>';
+		$html .= '</div>';
+		wp_reset_postdata();
+	}
+
+	return $html .= '</div>';
+}
+
+add_filter('body_class', function($classes) {
+	global $post;
+	if(is_page(34)) $classes[] = 'my-account';
+	
+	return  $classes;
+}, 10, 1);

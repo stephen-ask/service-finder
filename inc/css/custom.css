@@ -510,6 +510,7 @@ li.user-icon-list {
 .user-links ul li {
 	cursor: pointer;
 }
+
 @media only screen and (max-width: 1199px){
 	.provider-profile-container .profile-card{
 		bottom: 0;

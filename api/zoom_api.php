@@ -13,8 +13,6 @@ class wp_zoom_api {
 		if(session_status() === PHP_SESSION_NONE) session_start();
 		$this->config();
 		$this->init_zoom_api_endpoints();
-		
-		
 	}
 
 	function config() {

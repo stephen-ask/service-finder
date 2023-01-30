@@ -89,8 +89,6 @@ function wp_register_user_endpoints($request)
 
 }
 
-
-
 function login(WP_REST_Request $request)
 {
     $response = array();
