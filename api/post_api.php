@@ -46,10 +46,29 @@ class Post_Api {
             //     )
             // )
         ));
+        register_rest_route('blog-post', 'edit', array(
+            'methods' => 'POST',
+            'callback' => [$this, 'edit_blog_post'],
+            // 'permission_callback' => [$this, 'isuserLoggedin'],
+            // 'args'=> array(
+            //     'title' => array (
+            //         "validate" => [$this, "is_empty"]
+            //     )
+            // )
+        ));
+        register_rest_route('blog-post', 'delete', array(
+            'methods' => 'POST',
+            'callback' => [$this, 'delete_blog_post'],
+            // 'permission_callback' => [$this, 'isuserLoggedin'],
+            // 'args'=> array(
+            //     'title' => array (
+            //         "validate" => [$this, "is_empty"]
+            //     )
+            // )
+        ));
     }
 
     function is_empty( $request ) {
-        
         return empty($param) ? false : true ;
     }
 
@@ -59,8 +78,6 @@ class Post_Api {
         $service_finder_Errors = new WP_Error();
         $parameters = $request->get_params();
         $files = $request->get_file_params();
-        
-        exit;
 
         if($authorised) {
             $title = sanitize_text_field($parameters['title']);
@@ -84,6 +101,15 @@ class Post_Api {
             $service_finder_Errors->add(401, esc_html__('Unauthorised', 'service-finder'));
             return $service_finder_Errors;
         }
+    }
+    
+    function delete_blog_post($request) {
+        $parameters = $request->get_params();
+        
+    }
+    
+    function edit_blog_post($request) {
+
     }
 }
 

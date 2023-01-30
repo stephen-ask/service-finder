@@ -1711,9 +1711,18 @@ function influencer_meeting_list() {
 
 	$posts = get_posts($args);
 
-	$html = '<table class="influencer_meeting_list container" >';
+	$html = '<table class="influencer_meeting_list table-striped" >';
+	$head = array( 'S.no', 'Title', 'Action' );
+	
+	// Set table header 
+	$html .= '<tr>';
+	foreach( $head as $value ) {
+		$html .= '<th>'. $value . '</th>'; 
+	}
+	$html .= '</tr>';
+	$i = 1;
 	foreach( $posts as $post ) {
-
+		// Get meeting Info
 		$get_booking_count = !empty( get_post_meta( $post->ID, "etn_avaiilable_tickets", true ) ) ? absint( get_post_meta( $post->ID, "etn_avaiilable_tickets", true ) ) : 0;
 		$get_link = get_permalink( $post->ID );
 		$event_author_data =  get_userdata($post->post_author);
@@ -1721,17 +1730,17 @@ function influencer_meeting_list() {
 		$author_name = $event_author_data->data->user_login;
 		$author_name = $event_author_data->data->user_login;
 
-
-
+		$thumb = get_the_post_thumbnail_url( $post->ID );
+		$thumb = !empty( $thumb ) ? $thumb : wp_get_attachment_image_url( 5026 );
+		$permalink =  '#edit_meetings'; // ?meeting='.$post->ID;
+		
+		// Set to table 
 		$html .= '<tr class="item">';
-			$thumb = get_the_post_thumbnail_url( $post->ID );
-			$thumb = !empty( $thumb ) ? $thumb : wp_get_attachment_image_url( 5026 );
-			$permalink = get_site_url(). '/my-account/#edit-meeting?meeting='.$post->ID;
-			
-				$html .= '<h4><a href="'.$permalink.'">'.$post->post_title.'</a></h4>';
-				$html .= '<a href="'.$get_link.'" class="btn btn-primary">Join now</a>';
-
+			$html .= '<td>'.$i.'</td>';
+			$html .= '<td><a href="'.$permalink.'" class="event_action" data-id="'.$post->ID.'" data-action="edit" >'.$post->post_title.'</a></td>';
+			$html .= '<td><a href="'.$permalink.'">Delete</a></td>';
 		$html .= '</tr>';
+		$i++;
 	}
 	wp_reset_postdata();
 	return $html .= '</table>';
