@@ -87,7 +87,7 @@ function wp_register_user_endpoints($request)
 	));
 
 	register_rest_route('v1/meetings', '/get', array(
-		'methods' => 'GET',
+		'methods' => 'POST',
 		'callback' => 'get_meetings'
 	));
 }
@@ -364,16 +364,6 @@ function forgot_pwd(WP_REST_Request $request)
             );
 
             return new WP_REST_Response($response);
-
-            // if (function_exists("service_finder_wpmailer")) {
-            //     if (wp_mail($user->user_email, $msg_subject, $msg_body)) {
-            //         $response = array('status' => 'mail sent');
-            //         return new WP_REST_Response($response);
-            //     }
-            // } else {
-            //     $response = array('status' => 'service_finder_wpmailer function was not available ');
-            //     return new WP_REST_Response($response);
-            // }
         }
     } else {
         $service_finder_Errors->add('username_exist', esc_html__('ERROR: There is no user registered with that username/email address.', 'service-finder'));
@@ -858,7 +848,7 @@ function get_meetings( WP_REST_Request $request ) {
 	$authorised = isuserLoggedin($request);
 	$service_finder_Errors = new WP_Error();
 	$parameters = $request->get_params();
-	$response = (object) array();
+	$response = array();
 	
 	if($authorised) {
 		$id = $authorised['user_data']->id;
@@ -867,9 +857,10 @@ function get_meetings( WP_REST_Request $request ) {
 			'ID' =>	(int) $parameters['event_id']
 		);
 		
-		$response->meetings = get_post($parameters['event_id']) ?? 'empty';
-		$response->meetings->post_meta = get_post_meta($parameters['event_id'],'', true) ?? 'empty';
-
+		$response = array(
+			'meetings' => get_post($parameters['event_id']) ?? 'empty', 
+			'post_meta' => get_post_meta($parameters['event_id']) ?? 'empty'
+		);
 
 		return new WP_REST_Response($response);
 	}

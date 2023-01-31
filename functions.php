@@ -1712,8 +1712,8 @@ function influencer_meeting_list() {
 	);
 
 	$posts = get_posts($args);
-
-	$html = '<table class="influencer_meeting_list table-striped" >';
+	$html = '<div class="panel panel-default">';
+	$html .= '<table class="influencer_meeting_list table-striped" >';
 	$head = array( 'S.no', 'Title', 'Action' );
 	
 	// Set table header 
@@ -1745,7 +1745,8 @@ function influencer_meeting_list() {
 		$i++;
 	}
 	wp_reset_postdata();
-	return $html .= '</table>';
+	$html .= '</table>';
+	return $html .= '</div>';
 
 }
 
