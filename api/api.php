@@ -852,10 +852,11 @@ function get_meetings( WP_REST_Request $request ) {
 	
 	if($authorised) {
 		$id = $authorised['user_data']->id;
-		$args = array(
-			'post_author' => (int) $id,
-			'ID' =>	(int) $parameters['event_id']
-		);
+		// $args = array(
+		// 	'post_author' => (int) $id,
+		// 	'ID' =>	(int) $parameters['event_id']
+		// );
+		
 		
 		$response = array(
 			'meetings' => get_post($parameters['event_id']) ?? 'empty', 
