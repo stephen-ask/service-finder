@@ -9,7 +9,7 @@
  *
  ******************************************************************************/
 
- error_reporting( E_WARNING );
+//  error_reporting( E_WARNING );
 
 $files_array = array(
 	get_template_directory() . '/vendor/autoload.php',
@@ -1713,7 +1713,7 @@ function influencer_meeting_list() {
 
 	$posts = get_posts($args);
 	$html = '<div class="panel panel-default">';
-	$html .= '<table class="influencer_meeting_list table-striped" >';
+	$html .= '<table class="influencer_meeting_list table" >';
 	$head = array( 'S.no', 'Title', 'Action' );
 	
 	// Set table header 
@@ -1740,13 +1740,38 @@ function influencer_meeting_list() {
 		$html .= '<tr class="item">';
 			$html .= '<td>'.$i.'</td>';
 			$html .= '<td><a href="'.$permalink.'" class="event_action" data-section-id="#edit_meetings" data-id="'.$post->ID.'" data-action="edit" >'.$post->post_title.'</a></td>';
-			$html .= '<td><a href="'.$permalink.'">Delete</a></td>';
+			$html .= '<td><a class="remove_event" data-id="'.$post->ID.'" >Delete</a></td>';
 		$html .= '</tr>';
 		$i++;
 	}
 	wp_reset_postdata();
+
 	$html .= '</table>';
+	$html .= "<script>";
+	$html .= "$('.remove_event').click(function() {";
+	$html .= "	let id = $(this).attr('date-id');";
+	$html .= "	var remove_event = async (ajaxUrl) => {";
+	$html .= "	var response = await fetch(ajaxUrl,  {";
+	$html .= "		method: \"POST\",";
+	$html .= "		body: getdata, ";
+	$html .= "		headers: {";
+	$html .= "			'Authorization': 'Bearer '+ token";
+	$html .= "		}";
+	$html .= "	});";
+	$html .= "	var res = await response.json();";
+	$html .= "	var msg = (res.status == 'Success') ? 'Event Deleted' : 'Failed to Event Deleted';";
+	$html .= "	var alertClass = (res.status == 'Success') ? 'alert-success' : 'alert-danger';";
+	$html .= "	setTimeout(() => {";
+	$html .= "	jQuery('#edit_event').prepend('";
+	$html .=  "<div class=\"alert'+alertClass+'\" >'+msg+'</div>');";
+	$html .= "	}, \"2000\");";
+	$html .= "}";
+	$html .= "remove_event(ajaxUrl);";
+	$html .= "});";
+	$html .= "</script>";
 	return $html .= '</div>';
+
+
 
 }
 
@@ -1870,8 +1895,10 @@ function upcomming_meetings() {
 }
 
 add_filter('body_class', function($classes) {
-	global $post;
+	global $post, $current_user;
 	if(is_page(34)) $classes[] = 'my-account';
+
+	if(in_array('Provider', $current_user->roles) || in_array('provider', $current_user->roles)) $classes[] = 'influencer';
 	
 	return  $classes;
 }, 10, 1);

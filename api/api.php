@@ -856,7 +856,7 @@ function get_meetings( WP_REST_Request $request ) {
 		// 	'post_author' => (int) $id,
 		// 	'ID' =>	(int) $parameters['event_id']
 		// );
-		
+		var_dump($id, $parameters['event_id']);
 		
 		$response = array(
 			'meetings' => get_post($parameters['event_id']) ?? 'empty', 

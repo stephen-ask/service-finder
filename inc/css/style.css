@@ -460,6 +460,10 @@ i.flaticon-back.slick-arrow.slick-disabled, i.flaticon-right-arrow.slick-arrow,i
 .upcomming_meetings .btn.btn-primary {
 
 }
+#menu-quick-links li a {
+	font-size: 14px;
+}
+
 .my-account .footer-width-fixer {
 	display: none !important;
 }

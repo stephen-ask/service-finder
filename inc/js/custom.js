@@ -1053,18 +1053,18 @@ jQuery('meta[name=viewport]').attr('content','width=device-width,initial-scale=1
 	$('.user-links').hide();
 
 	$('.user-links, .user-icon, .user-icon-list').mouseover(function(){
-		$('.user-links').show();
+		$('.influencer .user-links').show();
 	});
 	$('.user-icon, .user-links, .user-icon-list').mouseout(function(){
-		$('.user-links').hide();
+		$('.influencer .user-links').hide();
 	});
 
 
 
 	$('.user-icon, .user-links, .user-icon-list').focus(function(){
-		$('.user-links').show();
+		$('.influencer .user-links').show();
 	});
 	$('.user-icon, .user-links, .user-icon-list').focusout(function(){
-		$('.user-links').hide();
+		$('.influencer .user-links').hide();
 	});
 })(jQuery);
