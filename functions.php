@@ -25,23 +25,25 @@ array_filter($files_array, function($value, $key) {
 add_action('init', function () {
 	$uri_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 	$uri_segments = explode('/', $uri_path);
+	
+	$project_state = @$uri_segments[1] == 'test' ? 'development' : 'production';
 
-	if (@$uri_segments[1] == 'wp-json') {
+	if (in_array('wp-json', $uri_segments)) {
 		if( file_exists( get_template_directory() . "/api/api.php") ){	
 			require_once get_template_directory() . "/api/api.php";
 		}
 	}
-	if (@$uri_segments[3] == 'product') {		
+	if (in_array('product', $uri_segments)) {		
 		if( file_exists( get_template_directory() . "/api/product_api.php") ){	
 			require_once get_template_directory() . "/api/product_api.php";
 		}
 	}
-	if (@$uri_segments[3] == 'zoom') {	
+	if (in_array('zoom', $uri_segments)) {	
 		if( file_exists( get_template_directory() . "/api/zoom_api.php") ) {	
 			require_once get_template_directory() . "/api/zoom_api.php";
 		}
 	}
-	if (@$uri_segments[3] == 'blog-post') {		
+	if (in_array('blog-post', $uri_segments)) {		
 		if( file_exists( get_template_directory() . "/api/post_api.php")) {
 			require_once get_template_directory() . "/api/post_api.php";
 		}
@@ -1659,11 +1661,11 @@ function influencer_get_products_list() {
 			<td>'.$i.'</td>
 			<td>'.woocommerce_get_product_thumbnail().'</td>
 			<td><a href="'.get_permalink().'">'.get_the_title().'</a></td>
-			<td><a href="'.get_permalink().'" class="btn btn-primary pr-1" >Edit</a><a href="'.get_permalink().'" class="btn btn-primary pr-1">Delete</a></td>
+			<td><a href="'.get_permalink().'" class="btn btn-primary pr-1" >Edit</a><a href="'.get_rest_url().'" class="btn btn-primary pr-1">Delete</a></td>
 		</tr>';
 		$i++;
     endwhile;
-	 wp_reset_query();
+	//  wp_reset_query();
 	return $html .= '</table>';
    
 }
@@ -1732,12 +1734,12 @@ function influencer_meeting_list() {
 
 		$thumb = get_the_post_thumbnail_url( $post->ID );
 		$thumb = !empty( $thumb ) ? $thumb : wp_get_attachment_image_url( 5026 );
-		$permalink =  '#edit_meetings'; // ?meeting='.$post->ID;
+		$permalink =  '#edit_meetings?meeting='.$post->ID;
 		
 		// Set to table 
 		$html .= '<tr class="item">';
 			$html .= '<td>'.$i.'</td>';
-			$html .= '<td><a href="'.$permalink.'" class="event_action" data-id="'.$post->ID.'" data-action="edit" >'.$post->post_title.'</a></td>';
+			$html .= '<td><a href="'.$permalink.'" class="event_action" data-section-id="#edit_meetings" data-id="'.$post->ID.'" data-action="edit" >'.$post->post_title.'</a></td>';
 			$html .= '<td><a href="'.$permalink.'">Delete</a></td>';
 		$html .= '</tr>';
 		$i++;
@@ -1872,3 +1874,5 @@ add_filter('body_class', function($classes) {
 	
 	return  $classes;
 }, 10, 1);
+
+

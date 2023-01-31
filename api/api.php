@@ -86,7 +86,10 @@ function wp_register_user_endpoints($request)
 		'callback' => 'get_user_address'
 	));
 
-
+	register_rest_route('v1/meetings', '/get', array(
+		'methods' => 'GET',
+		'callback' => 'get_meetings'
+	));
 }
 
 function login(WP_REST_Request $request)
@@ -849,4 +852,50 @@ function create_new_post(WP_REST_Request $request) {
         $service_finder_Errors->add(401, esc_html__('Unauthorised', 'service-finder'));
         return $service_finder_Errors;
     }
+}
+
+function get_meetings( WP_REST_Request $request ) {
+	$authorised = isuserLoggedin($request);
+	$service_finder_Errors = new WP_Error();
+	$parameters = $request->get_params();
+	$response = (object) array();
+	
+	if($authorised) {
+		$id = $authorised['user_data']->id;
+		$args = array(
+			'post_author' => (int) $id,
+			'ID' =>	(int) $parameters['event_id']
+		);
+		
+		$response->meetings = get_post($parameters['event_id']) ?? 'empty';
+		$response->meetings->post_meta = get_post_meta($parameters['event_id'],'', true) ?? 'empty';
+
+
+		return new WP_REST_Response($response);
+	}
+	else {
+		$service_finder_Errors->add(401, esc_html__('Unauthorised', 'service-finder'));
+		return $service_finder_Errors;
+	}
+}
+
+function remove_meeting( WP_REST_Request $request ) {
+	$authorised = isuserLoggedin($request);
+	$service_finder_Errors = new WP_Error();
+	$parameters = $request->get_params();
+	global $wpdb;
+	if($authorised) {
+		$id = $authorised['user_data']->id;
+		$args = array(
+			'ID' =>	(int) $parameters['event_id']
+		);
+
+		$response['status'] = wp_delete_post($args) ?? 'Failed';
+
+		return new WP_REST_Response($response);
+	}
+	else {
+		$service_finder_Errors->add(401, esc_html__('Unauthorised', 'service-finder'));
+		return $service_finder_Errors;
+	}
 }

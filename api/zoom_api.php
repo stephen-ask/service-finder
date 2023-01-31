@@ -1,6 +1,6 @@
 <?php
 
-class wp_zoom_api {
+class wp_zoom_api extends WP_Rest_Response {
 
 	public $zoom_api_key;
     public $zoom_api_secret;
@@ -95,6 +95,9 @@ class wp_zoom_api {
 			
 			echo wp_remote_retrieve_body( wp_remote_get( $request_url, $args ) );
 		}
+	}
+	function remove_zoom_meeting() {
+		
 	}
 }
 

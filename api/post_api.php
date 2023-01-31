@@ -105,11 +105,46 @@ class Post_Api {
     
     function delete_blog_post($request) {
         $parameters = $request->get_params();
+        $id = $parameters["id"];
+        $service_finder_Errors = new WP_Error();
+        $authorised = isuserLoggedin($request);
+        $service_finder_Errors->add(401, esc_html__('Unauthorised', 'service-finder'));
+
+        $response['status'] = wp_delete_post( $parameters["id"] ) ? "success" : "fails";
+        return $response['status'] == "success" ? new WP_REST_Response($response) :  $service_finder_Errors ;
         
     }
     
     function edit_blog_post($request) {
 
+        $authorised = isuserLoggedin($request);
+        $service_finder_Errors = new WP_Error();
+        $parameters = $request->get_params();
+        $files = $request->get_file_params();
+
+        if($authorised) {
+            $title = sanitize_text_field($parameters['title']);
+            $content = sanitize_text_field($parameters['content']);
+            $status = sanitize_text_field($parameters['status']) ?? 'publish';
+            $user_id = $authorised['user_data']->id;
+            
+            $new = array(
+                'ID' => $parameters['id'],
+                'post_title' => $title,
+                'post_content' => $content,
+                'post_status' => $status,
+                'post_author' => $user_id,
+            );
+            
+            $post_id = wp_update_post( $new ); 
+            $response['status'] = $post_id ? "Success" : "Failure";
+            $response['message'] = $post_id ? "Post successfully published!" : "Something went wrong, try again.";
+            return new WP_REST_Response($response);
+        }
+        else {
+            $service_finder_Errors->add(401, esc_html__('Unauthorised', 'service-finder'));
+            return $service_finder_Errors;
+        }
     }
 }
 
