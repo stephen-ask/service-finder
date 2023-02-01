@@ -90,6 +90,11 @@ function wp_register_user_endpoints($request)
 		'methods' => 'POST',
 		'callback' => 'get_meetings'
 	));
+
+	register_rest_route('v1/meetings', '/remove', array(
+		'methods' => 'POST',
+		'callback' => 'remove_meeting'
+	));
 }
 
 function login(WP_REST_Request $request)
@@ -856,7 +861,7 @@ function get_meetings( WP_REST_Request $request ) {
 		// 	'post_author' => (int) $id,
 		// 	'ID' =>	(int) $parameters['event_id']
 		// );
-		var_dump($id, $parameters['event_id']);
+		// var_dump($id, $parameters['event_id']);
 		
 		$response = array(
 			'meetings' => get_post($parameters['event_id']) ?? 'empty', 
@@ -875,14 +880,14 @@ function remove_meeting( WP_REST_Request $request ) {
 	$authorised = isuserLoggedin($request);
 	$service_finder_Errors = new WP_Error();
 	$parameters = $request->get_params();
-	global $wpdb;
+
 	if($authorised) {
 		$id = $authorised['user_data']->id;
 		$args = array(
 			'ID' =>	(int) $parameters['event_id']
 		);
 
-		$response['status'] = wp_delete_post($args) ?? 'Failed';
+		$response['status'] = wp_delete_post($args) ? 'Success' : 'Failed';
 
 		return new WP_REST_Response($response);
 	}
